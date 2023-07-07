@@ -42,7 +42,7 @@ namespace TwitchChatIntegration
             var twitchBot = new TwitchBot(this.Config.Username, this.Config.Password, this.Monitor);
 
             twitchBot.Start().SafeFireAndForget();
-            await twitchBot.JoinChannel("test_bot_13");
+            await twitchBot.JoinChannel(this.Config.TargetChannel);
 
             twitchBot.OnMessage += this.OnTwitchMessage;
 

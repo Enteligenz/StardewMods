@@ -15,5 +15,5 @@ inside of the mod folder that is created when first starting the game with this 
 
 The idea for this mod comes from [RyanGoods](https://github.com/StardewModders/mod-ideas/issues/1047).
 
-Code for Twitch bot comes from [this article](https://medium.com/swlh/writing-a-twitch-bot-from-scratch-in-c-f59d9fed10f3),
+The code for the Twitch bot comes from [this article](https://medium.com/swlh/writing-a-twitch-bot-from-scratch-in-c-f59d9fed10f3),
 I seriously couldn't have made this mod without it.

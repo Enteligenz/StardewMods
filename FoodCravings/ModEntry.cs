@@ -18,10 +18,8 @@ namespace FoodCravings
         Random rnd = new Random();
         StardewValley.Object DailyCravingItem;
         bool CravingFulfilled;
-        // public Buff(int farming, int fishing, int mining, int digging, int luck, int foraging, int crafting, int maxStamina,
-        // int magneticRadius, int speed, int defense, int attack, int minutesDuration, string source, string displaySource)
-        Buff cravingBuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 0, "FoodCravings", "Craving fulfilled");
-        Buff cravingDebuff = new Buff(0, 0, 0, 0, 0, 0, 0, -100, 0, 0, 0, -2, 0, "FoodCravings", "Craving unfulfilled");
+        Buff cravingBuff;
+        Buff cravingDebuff;
         Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
         private ModConfig Config;
         bool isHangryMode;
@@ -38,6 +36,13 @@ namespace FoodCravings
 
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
+
+            // public Buff(int farming, int fishing, int mining, int digging, int luck, int foraging, int crafting, int maxStamina,
+            // int magneticRadius, int speed, int defense, int attack, int minutesDuration, string source, string displaySource)
+            this.cravingBuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0,
+                0, this.Config.speedBuff, this.Config.defenseBuff, this.Config.attackBuff, 0, "FoodCravings", "Craving fulfilled");
+            this.cravingDebuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0,
+                0, this.Config.speedDebuff, this.Config.defenseDebuff, this.Config.attackDebuff, 0, "FoodCravings", "Craving unfulfilled");
             this.cravingBuff.millisecondsDuration = 540000; // Buff lasts half an in-game day NOTE setting the time on init is weird, so we use this
             this.cravingDebuff.millisecondsDuration = 1080000; // Debuff lasts entire day, unless stopped
 
@@ -77,16 +82,14 @@ namespace FoodCravings
             this.quest.Objective = "Consume " + DailyCravingItem.name + ".";
             this.managedApi.AcceptQuest("food_craving", true);
 
-            // Reset flag
+            // Reset flag (buffs seem to automatically reset on next day)
             this.CravingFulfilled = false;
-            Game1.buffsDisplay.removeOtherBuff(this.cravingBuff.which);
 
             // Apply craving debuff if necessary
             if (this.isHangryMode)
             {
                 Game1.buffsDisplay.addOtherBuff(this.cravingDebuff);
-                Game1.player.stamina -= 100; // Player would have energy over cap if we don't subtract it
-            }
+            }   
         }
 
         private void OnUpdateTicked(object sender, EventArgs e)
@@ -103,7 +106,6 @@ namespace FoodCravings
                     if (this.isHangryMode)
                     {
                         Game1.buffsDisplay.removeOtherBuff(this.cravingDebuff.which); // Remove debuff
-                        Game1.player.stamina += 100; // Add back lost energy
                     }
                 }
             }

@@ -94,20 +94,25 @@ namespace FoodCravings
 
         private void OnUpdateTicked(object sender, EventArgs e)
         {
-            if (Game1.player.isEating && !this.CravingFulfilled)
+            if (!Game1.player.isEating || this.CravingFulfilled) // Player is not eating or craving has already been fulfilled before
             {
-                Item CurrentFood = Game1.player.itemToEat;
-                if (this.DailyCravingItem.name.Equals(CurrentFood.Name))
-                {
-                    this.CravingFulfilled = true;
-                    this.managedApi.CompleteQuest("food_craving"); // Mark quest for craving as completed
+                return;
+            }
 
-                    Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
-                    if (this.isHangryMode)
-                    {
-                        Game1.buffsDisplay.removeOtherBuff(this.cravingDebuff.which); // Remove debuff
-                    }
-                }
+            Item CurrentFood = Game1.player.itemToEat;
+
+            if (!this.DailyCravingItem.name.Equals(CurrentFood.Name)) // Player is eating food that is not craved
+            {
+                return;
+            }
+
+            this.CravingFulfilled = true;
+            this.managedApi.CompleteQuest("food_craving"); // Mark quest for craving as completed
+
+            Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
+            if (this.isHangryMode)
+            {
+                Game1.buffsDisplay.removeOtherBuff(this.cravingDebuff.which); // Remove debuff
             }
         }
     }

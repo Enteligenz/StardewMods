@@ -10,17 +10,18 @@ using StardewValley.Objects;
 using QuestFramework.Api;
 using QuestFramework.Quests;
 using QuestFramework;
+using StardewValley.Minigames;
 
 namespace FoodCravings
 {
     internal sealed class ModEntry : Mod
     {
         Random rnd = new Random();
-        StardewValley.Object DailyCravingItem;
+        string DailyCravingName;
         bool CravingFulfilled;
         Buff cravingBuff;
         Buff cravingDebuff;
-        Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
+        //Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
         private ModConfig Config;
         bool isHangryMode;
 
@@ -67,19 +68,17 @@ namespace FoodCravings
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            // Randomize food craving
-            var DailyCravingEntry = this.recipeDict.ElementAt(rnd.Next(0, this.recipeDict.Count));
-            string DailyCravingValue = DailyCravingEntry.Value; // Food info
+            // Get list of all known recipes
+            List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 
-            // Get food object
-            int DailyCravingId = int.Parse(DailyCravingValue.Split("/")[2]);
-            DailyCravingItem = new StardewValley.Object(DailyCravingId, 1);
-            Game1.addHUDMessage(new HUDMessage("Craving: " + DailyCravingItem.name, 2));
+            // Randomize food craving
+            this.DailyCravingName = knownRecipes.ElementAt(rnd.Next(0, knownRecipes.Count));
+            Game1.addHUDMessage(new HUDMessage("Craving: " + DailyCravingName, 2));
 
             // Add quest for craving into quest tab
             if (!this.CravingFulfilled) this.managedApi.CompleteQuest("food_craving"); // Remove old food craving quest in case it was not fulfilled
-            this.quest.Description = "I am craving some " + DailyCravingItem.name + "...";
-            this.quest.Objective = "Consume " + DailyCravingItem.name + ".";
+            this.quest.Description = "I am craving some " + DailyCravingName + "...";
+            this.quest.Objective = "Consume " + DailyCravingName + ".";
             this.managedApi.AcceptQuest("food_craving", true);
 
             // Reset flag (buffs seem to automatically reset on next day)
@@ -101,7 +100,7 @@ namespace FoodCravings
 
             Item CurrentFood = Game1.player.itemToEat;
 
-            if (!this.DailyCravingItem.name.Equals(CurrentFood.Name)) // Player is eating food that is not craved
+            if (!this.DailyCravingName.Equals(CurrentFood.Name)) // Player is eating food that is not craved
             {
                 return;
             }

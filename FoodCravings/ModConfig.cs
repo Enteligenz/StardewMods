@@ -11,5 +11,6 @@ namespace FoodCravings
         public int attackDebuff { get; set; } = -2;
         public int defenseDebuff { get; set; } = 0;
         public int speedDebuff { get; set; } = 0;
+        public string[] recipeBlacklist { get; set; } = { };
     }
 }

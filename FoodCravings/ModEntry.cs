@@ -10,13 +10,14 @@ using StardewValley.Objects;
 using QuestFramework.Api;
 using QuestFramework.Quests;
 using QuestFramework;
-using StardewValley.Minigames;
+using System.IO;
 
 namespace FoodCravings
 {
     internal sealed class ModEntry : Mod
     {
         Random rnd = new Random();
+        string DailyCravingKey;
         string DailyCravingName;
         bool CravingFulfilled;
         Buff cravingBuff;
@@ -24,6 +25,7 @@ namespace FoodCravings
         //Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
         private ModConfig Config;
         bool isHangryMode;
+        string[] recipeBlacklist;
 
         IQuestApi api;
         IManagedQuestApi managedApi;
@@ -34,6 +36,7 @@ namespace FoodCravings
         {
             this.Config = this.Helper.ReadConfig<ModConfig>();
             this.isHangryMode = this.Config.useHangryMode;
+            this.recipeBlacklist = this.Config.recipeBlacklist;
 
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
@@ -71,14 +74,38 @@ namespace FoodCravings
             // Get list of all known recipes
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 
-            // Randomize food craving
-            this.DailyCravingName = knownRecipes.ElementAt(rnd.Next(0, knownRecipes.Count));
-            Game1.addHUDMessage(new HUDMessage("Craving: " + DailyCravingName, 2));
+            // Randomize food craving until non-blacklisted food is found
+            while (true)
+            {
+                this.DailyCravingKey = knownRecipes.ElementAt(rnd.Next(0, knownRecipes.Count));
+
+                // Find the proper display name of the food
+                this.DailyCravingName = this.DailyCravingKey; // For vanilla food (and some older mods) the key name will be the same as the display name
+                if (CraftingRecipe.cookingRecipes.TryGetValue(this.DailyCravingKey, out string recipe))
+                {
+                    string[] recipeParts = recipe.Split('/');
+                    if (recipeParts.Length == 6) // afaik modded food will follow this format, where the last part of the recipe is the name we want
+                    {
+                        this.DailyCravingName = recipeParts[5]; // Modded food might use i18n format as key, so we need to replace it with sth more readable
+                    }
+                }
+
+                if (!this.recipeBlacklist.Contains(this.DailyCravingName))
+                {
+                    break;
+                }
+            }
+            
+            foreach (string rec in this.recipeBlacklist)
+            {
+                this.Monitor.Log($"recipe blacklist: {rec}.", LogLevel.Debug);
+            }
 
             // Add quest for craving into quest tab
+            Game1.addHUDMessage(new HUDMessage("Craving: " + this.DailyCravingName, 2));
             if (!this.CravingFulfilled) this.managedApi.CompleteQuest("food_craving"); // Remove old food craving quest in case it was not fulfilled
-            this.quest.Description = "I am craving some " + DailyCravingName + "...";
-            this.quest.Objective = "Consume " + DailyCravingName + ".";
+            this.quest.Description = "I am craving some " + this.DailyCravingName + "...";
+            this.quest.Objective = "Consume " + this.DailyCravingName + ".";
             this.managedApi.AcceptQuest("food_craving", true);
 
             // Reset flag (buffs seem to automatically reset on next day)
@@ -88,7 +115,7 @@ namespace FoodCravings
             if (this.isHangryMode)
             {
                 Game1.buffsDisplay.addOtherBuff(this.cravingDebuff);
-            }   
+            }
         }
 
         private void OnUpdateTicked(object sender, EventArgs e)
@@ -100,7 +127,7 @@ namespace FoodCravings
 
             Item CurrentFood = Game1.player.itemToEat;
 
-            if (!this.DailyCravingName.Equals(CurrentFood.Name)) // Player is eating food that is not craved
+            if (!this.DailyCravingKey.Equals(CurrentFood.Name)) // Player is eating food that is not craved
             {
                 return;
             }

@@ -47,8 +47,6 @@ namespace FoodCravings
                 0, this.Config.speedBuff, this.Config.defenseBuff, this.Config.attackBuff, 0, "FoodCravings", "Craving fulfilled");
             this.cravingDebuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0,
                 0, this.Config.speedDebuff, this.Config.defenseDebuff, this.Config.attackDebuff, 0, "FoodCravings", "Craving unfulfilled");
-            this.cravingBuff.millisecondsDuration = 540000; // Buff lasts half an in-game day NOTE setting the time on init is weird, so we use this
-            this.cravingDebuff.millisecondsDuration = 1080000; // Debuff lasts entire day, unless stopped
 
             helper.Events.GameLoop.GameLaunched += this.OnGameStarted;
         }
@@ -71,6 +69,10 @@ namespace FoodCravings
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
+            // (Re)set buff and debuff durations, or else the same remaining time will be used over multiple days
+            this.cravingBuff.millisecondsDuration = 540000; // Buff lasts half a day NOTE setting the time on init is weird, so we use this
+            this.cravingDebuff.millisecondsDuration = 1080000; // Debuff lasts entire day, unless stopped
+
             // Get list of all known recipes
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 

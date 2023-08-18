@@ -5,7 +5,7 @@
   "Description": "Adds daily cravings for random cooked foods for the player.",
   "UniqueID": "Hexenentendrache.FoodCravings",
   "EntryDll": "FoodCravings.dll",
-  "MinimumApiVersion": "3.0.0",
+  "MinimumApiVersion": "3.0.1",
   "UpdateKeys": [ "Nexus:17126" ],
   "Dependencies": [
     {

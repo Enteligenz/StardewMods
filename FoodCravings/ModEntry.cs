@@ -77,9 +77,13 @@ namespace FoodCravings
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 
             // Randomize food craving until non-blacklisted food is found
+            if (this.Config.seededRandom)
+            {
+                this.rnd = new Random(Game1.Date.ToString().GetHashCode());
+            }
             while (true)
             {
-                this.DailyCravingKey = knownRecipes.ElementAt(rnd.Next(0, knownRecipes.Count));
+                this.DailyCravingKey = knownRecipes.ElementAt(this.rnd.Next(0, knownRecipes.Count));
 
                 // Find the proper display name of the food
                 this.DailyCravingName = this.DailyCravingKey; // For vanilla food (and some older mods) the key name will be the same as the display name

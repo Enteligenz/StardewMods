@@ -12,5 +12,6 @@ namespace FoodCravings
         public int defenseDebuff { get; set; } = 0;
         public int speedDebuff { get; set; } = 0;
         public string[] recipeBlacklist { get; set; } = { };
+        public bool seededRandom { get; set; } = false;
     }
 }

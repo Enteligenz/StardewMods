@@ -8,9 +8,5 @@
   "MinimumApiVersion": "3.0.0",
   "UpdateKeys": [ "Nexus:17126" ],
   "Dependencies": [
-    {
-      "UniqueID": "PurrplingCat.QuestFramework",
-      "MinimumVersion": "1.4.3"
-    }
   ]
 }

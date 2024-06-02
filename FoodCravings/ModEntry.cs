@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Objects;
-using QuestFramework.Api;
-using QuestFramework.Quests;
-using QuestFramework;
+//using QuestFramework.Api;
+//using QuestFramework.Quests;
+//using QuestFramework;
 using System.IO;
 
 namespace FoodCravings
@@ -27,9 +28,11 @@ namespace FoodCravings
         bool isHangryMode;
         string[] recipeBlacklist;
 
-        IQuestApi api;
-        IManagedQuestApi managedApi;
-        CustomQuest quest;
+        //IQuestApi api;
+        //IManagedQuestApi managedApi;
+        //CustomQuest quest;
+
+        string fulfilledText, unfulfilledText, HUDText;//, questDescription, questObjective;
 
 
         public override void Entry(IModHelper helper)
@@ -41,12 +44,37 @@ namespace FoodCravings
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
 
-            // public Buff(int farming, int fishing, int mining, int digging, int luck, int foraging, int crafting, int maxStamina,
-            // int magneticRadius, int speed, int defense, int attack, int minutesDuration, string source, string displaySource)
-            this.cravingBuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0,
-                0, this.Config.speedBuff, this.Config.defenseBuff, this.Config.attackBuff, 0, "FoodCravings", "Craving fulfilled");
-            this.cravingDebuff = new Buff(0, 0, 0, 0, 0, 0, 0, 0,
-                0, this.Config.speedDebuff, this.Config.defenseDebuff, this.Config.attackDebuff, 0, "FoodCravings", "Craving unfulfilled");
+            // Read translations
+            // I18n.Init(helper.Translation); // ??
+            this.fulfilledText = helper.Translation.Get("fulfilled");
+            this.unfulfilledText = helper.Translation.Get("unfulfilled");
+            this.HUDText = helper.Translation.Get("hud-msg");
+            //this.questDescription = helper.Translation.Get("quest-desc");
+            //this.questObjective = helper.Translation.Get("quest-obj");
+
+            this.cravingBuff = new Buff(
+                id: "Hexenentendrache.FoodCravings_Buff",
+                displayName: this.fulfilledText,
+                iconTexture: this.Helper.ModContent.Load<Texture2D>("assets/food_craving_icon.png"),
+                duration: 540000,
+                effects: new StardewValley.Buffs.BuffEffects()
+                { // TODO change values if necessary
+                    Attack = { 2 },
+                    Defense = { 2 },
+                    Speed = { 1 }
+                }
+            );
+
+            this.cravingDebuff = new Buff(
+                id: "Hexenentendrache.FoodCravings_Debuff",
+                displayName: this.unfulfilledText,
+                iconTexture: this.Helper.ModContent.Load<Texture2D>("assets/food_craving_debuff_icon.png"),
+                duration: Buff.ENDLESS,
+                effects: new StardewValley.Buffs.BuffEffects()
+                { // TODO change values if necessary
+                    Attack = { -2 }
+                }
+            );
 
             helper.Events.GameLoop.GameLaunched += this.OnGameStarted;
         }
@@ -54,25 +82,21 @@ namespace FoodCravings
 
         private void OnGameStarted(object sender, GameLaunchedEventArgs e)
         {
-            bool isLoaded = this.Helper.ModRegistry.IsLoaded("PurrplingCat.QuestFramework");
-            this.api = this.Helper.ModRegistry.GetApi<IQuestApi>("PurrplingCat.QuestFramework");
-            this.managedApi = api.GetManagedApi(this.ModManifest);
+            //bool isLoaded = this.Helper.ModRegistry.IsLoaded("PurrplingCat.QuestFramework");
+            //this.api = this.Helper.ModRegistry.GetApi<IQuestApi>("PurrplingCat.QuestFramework");
+            //this.managedApi = api.GetManagedApi(this.ModManifest);
 
-            this.api.Events.GettingReady += (_sender, _e) => {
-                this.quest = new CustomQuest();
-                this.quest.Name = "food_craving";
-                this.quest.BaseType = QuestType.Basic;
-                this.quest.Title = "Food Craving";
-                this.managedApi.RegisterQuest(this.quest);
-            };
+            //this.api.Events.GettingReady += (_sender, _e) => {
+                //this.quest = new CustomQuest();
+                //this.quest.Name = "food_craving";
+                //this.quest.BaseType = QuestType.Basic;
+                //this.quest.Title = "Food Craving";
+                //this.managedApi.RegisterQuest(this.quest);
+            //};
         }
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            // (Re)set buff and debuff durations, or else the same remaining time will be used over multiple days
-            this.cravingBuff.millisecondsDuration = 540000; // Buff lasts half a day NOTE setting the time on init is weird, so we use this
-            this.cravingDebuff.millisecondsDuration = 1080000; // Debuff lasts entire day, unless stopped
-
             // Get list of all known recipes
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 
@@ -108,11 +132,11 @@ namespace FoodCravings
             }
 
             // Add quest for craving into quest tab
-            Game1.addHUDMessage(new HUDMessage("Craving: " + this.DailyCravingName, 2));
-            if (!this.CravingFulfilled) this.managedApi.CompleteQuest("food_craving"); // Remove old food craving quest in case it was not fulfilled
-            this.quest.Description = "I am craving some " + this.DailyCravingName + "...";
-            this.quest.Objective = "Consume " + this.DailyCravingName + ".";
-            this.managedApi.AcceptQuest("food_craving", true);
+            Game1.addHUDMessage(new HUDMessage(this.HUDText + this.DailyCravingName, 2));
+            //if (!this.CravingFulfilled) this.managedApi.CompleteQuest("food_craving"); // Remove old food craving quest in case it was not fulfilled
+            //this.quest.Description = this.questDescription + this.DailyCravingName + "...";
+            //this.quest.Objective = this.questObjective + this.DailyCravingName + ".";
+            //this.managedApi.AcceptQuest("food_craving", true);
 
             // Reset flag (buffs seem to automatically reset on next day)
             this.CravingFulfilled = false;
@@ -120,7 +144,8 @@ namespace FoodCravings
             // Apply craving debuff if necessary
             if (this.isHangryMode)
             {
-                Game1.buffsDisplay.addOtherBuff(this.cravingDebuff);
+                // Game1.buffsDisplay.addOtherBuff(this.cravingDebuff);
+                Game1.player.applyBuff(this.cravingDebuff);
             }
         }
 
@@ -139,12 +164,13 @@ namespace FoodCravings
             }
 
             this.CravingFulfilled = true;
-            this.managedApi.CompleteQuest("food_craving"); // Mark quest for craving as completed
+            //this.managedApi.CompleteQuest("food_craving"); // Mark quest for craving as completed
 
-            Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
+            // Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
+            Game1.player.applyBuff(this.cravingBuff);
             if (this.isHangryMode)
             {
-                Game1.buffsDisplay.removeOtherBuff(this.cravingDebuff.which); // Remove debuff
+                    Game1.player.buffs.Remove("Hexenentendrache.FoodCravings_Debuff"); // Remove debuff
             }
         }
     }

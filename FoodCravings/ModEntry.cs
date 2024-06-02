@@ -59,9 +59,9 @@ namespace FoodCravings
                 duration: 540000,
                 effects: new StardewValley.Buffs.BuffEffects()
                 { // TODO change values if necessary
-                    Attack = { 2 },
-                    Defense = { 2 },
-                    Speed = { 1 }
+                    Attack = { this.Config.attackBuff },
+                    Defense = { this.Config.defenseBuff },
+                    Speed = { this.Config.speedBuff }
                 }
             );
 
@@ -72,7 +72,9 @@ namespace FoodCravings
                 duration: Buff.ENDLESS,
                 effects: new StardewValley.Buffs.BuffEffects()
                 { // TODO change values if necessary
-                    Attack = { -2 }
+                    Attack = { this.Config.attackDebuff },
+                    Defense = { this.Config.defenseDebuff },
+                    Speed = { this.Config.speedDebuff }
                 }
             );
 

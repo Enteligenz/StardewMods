@@ -51,8 +51,12 @@ namespace TwitchChatIntegration
         }
 
         /// <summary> Picks a color for a specific sender and prints the message that was sent in Twitch chat into the Stardew Valley chat. </summary>
-        private async void OnTwitchMessage(object sender, TwitchBot.TwitchChatMessage twitchChatMessage)
+        private void OnTwitchMessage(object sender, TwitchBot.TwitchChatMessage twitchChatMessage)
         {
+            // Prevent crashing if the user doesn't have a chatbox available
+            if (!Context.IsWorldReady)
+                return;
+			
             int ColorIdx = Math.Abs(twitchChatMessage.Sender.GetHashCode()) % this.ChatColors.Length;
             Color chatColor = this.ChatColors[ColorIdx];
 

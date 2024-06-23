@@ -1,7 +1,7 @@
 {
   "Name": "Twitch Chat Integration",
   "Author": "Hexenentendrache",
-  "Version": "1.1.0",
+  "Version": "1.2.1",
   "Description": "Integrates Twitch chat into the game.",
   "UniqueID": "Hexenentendrache.TwitchChatIntegration",
   "EntryDll": "TwitchChatIntegration.dll",

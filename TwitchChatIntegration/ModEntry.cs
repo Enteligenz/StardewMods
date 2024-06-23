@@ -58,6 +58,7 @@ namespace TwitchChatIntegration
             if (!Context.IsWorldReady)
                 return;
 
+            // Ignore common Twitch command prefixes
             if (Config.IgnoreCommands && twitchChatMessage.Message[0] == '!')
                 return;
 

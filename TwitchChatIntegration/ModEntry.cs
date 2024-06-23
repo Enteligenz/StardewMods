@@ -58,6 +58,9 @@ namespace TwitchChatIntegration
             if (!Context.IsWorldReady)
                 return;
 
+            if (Config.IgnoreCommands && twitchChatMessage.Message[0] == '!')
+                return;
+
             // Ignore users on our ignored list
             if (Config.IgnoredAccounts.Contains(twitchChatMessage.Sender, StringComparer.InvariantCultureIgnoreCase))
                 return;

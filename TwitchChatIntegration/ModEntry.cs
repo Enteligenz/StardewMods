@@ -55,7 +55,8 @@ namespace TwitchChatIntegration
         private void OnTwitchMessage(object sender, TwitchBot.TwitchChatMessage twitchChatMessage)
         {
             // Prevent crashing if the user doesn't have a chatbox available
-            if (!Context.IsWorldReady)
+            // Also ignore any messages that are empty
+            if (!Context.IsWorldReady || string.IsNullOrEmpty(twitchChatMessage.Message))
                 return;
 
             // Ignore common Twitch command prefixes

@@ -7,5 +7,6 @@ namespace TwitchChatIntegration
         public string Username { get; set; } = String.Empty;
         public string Password { get; set; } = String.Empty;
         public string TargetChannel { get; set; } = String.Empty;
+        public string[] IgnoredAccounts { get; set; } = Array.Empty<string>();
     }
 }

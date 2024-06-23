@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
@@ -56,7 +57,11 @@ namespace TwitchChatIntegration
             // Prevent crashing if the user doesn't have a chatbox available
             if (!Context.IsWorldReady)
                 return;
-			
+
+            // Ignore users on our ignored list
+            if (Config.IgnoredAccounts.Contains(twitchChatMessage.Sender, StringComparer.InvariantCultureIgnoreCase))
+                return;
+
             int ColorIdx = Math.Abs(twitchChatMessage.Sender.GetHashCode()) % this.ChatColors.Length;
             Color chatColor = this.ChatColors[ColorIdx];
 

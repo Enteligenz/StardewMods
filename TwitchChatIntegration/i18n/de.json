@@ -18,6 +18,9 @@
   "config.twitch.behavior.ignorecommands": "Standard-Chat-Commands ignorieren",
   "config.twitch.behavior.ignorecommands.tooltip": "Filtert alle Nachrichten die mit einem ! beginnen heraus",
 
+  "config.twitch.behavior.systemmessages": "System-Nachrichten anzeigen",
+  "config.twitch.behavior.systemmessages.tooltip": "Zeigt Nachrichten wie Subscriptions/Resubs/Raids im Chat an",
+
   "config.twitch.behavior.filteredusers": "Zu filternde Nutzer-Accounts",
   "config.twitch.behavior.filteredusers.tooltip": "Durch Komma getrennte Liste von Account Namen die aus dem Chat herausgefiltert werden sollen",
 

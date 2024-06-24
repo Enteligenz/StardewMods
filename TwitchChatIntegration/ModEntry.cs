@@ -78,9 +78,8 @@ namespace TwitchChatIntegration
                 return;
             }
 
-            // Prevent re-execution if we're already initialized.
-            // NOTE: This could probably be checked better
-            if (this.Bot.IsInitialized())
+            // Prevent re-execution if we're already connected
+            if (this.Bot.IsConnected())
             {
                 this.OnStatus(false, "twitch.status.connected");
                 return;

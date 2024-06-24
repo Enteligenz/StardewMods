@@ -55,10 +55,7 @@ namespace TwitchChatIntegration
             this.hasAlertedConnected = false;
         }
 
-        public bool IsInitialized()
-        {
-            return !string.IsNullOrWhiteSpace(this.username) && !string.IsNullOrWhiteSpace(this.password);
-        }
+        public bool IsConnected() => this.hasAlertedConnected;
 
         public async Task Start()
         {

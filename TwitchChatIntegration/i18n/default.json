@@ -1,6 +1,6 @@
 {
 	"config.twitch.connection.title": "Twitch Connection Info",
-	"config.twitch.connection.info": "NOTE: Any changes to the Twitch Connection Info requires a game restart in order to apply.",
+	"config.twitch.connection.info": "NOTE: Connection information changes are applied upon each game load",
 
 
 	"config.twitch.connection.username": "Chat Username",
@@ -22,8 +22,15 @@
 	"config.twitch.behavior.filteredusers.tooltip": "Comma separated list of account names to ignore from the chat",
 
 	"config.twitch.password.title": "Twitch OAuth Password",
-	"config.twitch.password.info": "NOTE: you will need to fully restart the game if you change the value below",
+	"config.twitch.password.info": "NOTE: this must be the full chat token including the oauth: prefix",
 
 	"config.twitch.password.password": "Chat Password",
-	"config.twitch.password.password.tooltip": "This is the account password for the twitch account set as the username"
+	"config.twitch.password.password.tooltip": "This is the account password for the twitch account set as the username",
+
+	"twitch.status.boilerplate": "Twitch Chat Mod",
+	"twitch.status.badconfig": "Twitch Connection Information is not valid! Will fail to connect!",
+	"twitch.status.error.exception": "Encountered an error, most likely caused by invalid Twitch login credentials.",
+	"twitch.status.error.reconnect": "Twitch has requested us to reconnect, please go back to the main menu when possible",
+	"twitch.status.connecting": "Connecting to Twitch chat...",
+	"twitch.status.connected": "Connected!"
 }

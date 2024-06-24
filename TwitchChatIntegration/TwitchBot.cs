@@ -71,6 +71,10 @@ namespace TwitchChatIntegration
             streamReader = new StreamReader(sslStream);
             streamWriter = new StreamWriter(sslStream) { NewLine = "\r\n", AutoFlush = true };
 
+            // Request tag support
+            await streamWriter.WriteLineAsync("CAP REQ :twitch.tv/commands twitch.tv/tags");
+
+            // Login
             await streamWriter.WriteLineAsync($"PASS {password}");
             await streamWriter.WriteLineAsync($"NICK {username}");
             connected.SetResult(0);
@@ -98,23 +102,26 @@ namespace TwitchChatIntegration
                     // Twitch IRC Message Handling
                     if (split.Length > 2)
                     {
-                        string IRCMessage = split[1];
+                        string IRCMessage = split[2];
                         // Normal message
                         if (IRCMessage == "PRIVMSG")
                         {
                             // Grab name
-                            int exclamationPointPosition = split[0].IndexOf("!");
-                            string username = split[0].Substring(1, exclamationPointPosition - 1);
-                            // Skip the first character, the first colon, then find the next colon
-                            int secondColonPosition = line.IndexOf(':', 1);
-                            string message = line.Substring(secondColonPosition + 1);
-                            string channel = split[2].TrimStart('#');
+                            int exclamationPointPosition = split[1].IndexOf("!");
+                            string username = split[1].Substring(1, exclamationPointPosition - 1);
+                            string channel = split[3];
+
+                            // Find the message location
+                            string msgFindStart = $"PRIVMSG {channel} :";
+                            int messageStartLocation = line.IndexOf(msgFindStart);
+                            string message = line.Substring(messageStartLocation + msgFindStart.Length);
+                            
 
                             this.OnMessage(this, new TwitchChatMessage
                             {
                                 Message = message,
                                 Sender = username,
-                                Channel = channel
+                                Channel = channel.TrimStart('#')
                             });
                         }
                         else if (IRCMessage == "JOIN" || IRCMessage == "ROOMSTATE") // Channel connection established

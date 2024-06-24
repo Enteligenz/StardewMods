@@ -170,6 +170,14 @@ namespace TwitchChatIntegration
                 setValue: value => this.Config.IgnoreCommands = value
             );
 
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("config.twitch.behavior.systemmessages"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.behavior.systemmessages.tooltip"),
+                getValue: () => this.Config.ShowSystemMessages,
+                setValue: value => this.Config.ShowSystemMessages = value
+            );
+
             configMenu.AddTextOption(
                 mod: this.ModManifest,
                 name: () => this.Helper.Translation.Get("config.twitch.behavior.filteredusers"),
@@ -224,8 +232,17 @@ namespace TwitchChatIntegration
             if (this.Config.IgnoredAccounts.Contains(twitchChatMessage.Sender, StringComparer.InvariantCultureIgnoreCase))
                 return;
 
-            int ColorIdx = Math.Abs(twitchChatMessage.Sender.GetHashCode()) % this.ChatColors.Length;
-            Color chatColor = this.ChatColors[ColorIdx];
+            // If the user has disabled twitch system messages then drop them.
+            if (!this.Config.ShowSystemMessages && twitchChatMessage.IsSystem)
+                return;
+
+            Color chatColor = Color.Gray;
+            // Twitch messages should always be sent in Gray otherwise random color
+            if (!twitchChatMessage.IsSystem)
+            {
+                int ColorIdx = Math.Abs(twitchChatMessage.Sender.GetHashCode()) % this.ChatColors.Length;
+                chatColor = this.ChatColors[ColorIdx];
+            }
 
             Game1.chatBox.addMessage(twitchChatMessage.Sender + ": " + twitchChatMessage.Message, chatColor);
         }

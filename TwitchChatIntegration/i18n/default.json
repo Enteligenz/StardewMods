@@ -18,6 +18,9 @@
 	"config.twitch.behavior.ignorecommands": "Ignore Common Chat Commands",
 	"config.twitch.behavior.ignorecommands.tooltip": "This will make any message that's prefixed with a ! to not appear",
 
+	"config.twitch.behavior.systemmessages": "Show System Messages",
+	"config.twitch.behavior.systemmessages.tooltip": "This shows messages such as subscriptions/resubs/raids in the chat",
+
 	"config.twitch.behavior.filteredusers": "User Accounts to Filter",
 	"config.twitch.behavior.filteredusers.tooltip": "Comma separated list of account names to ignore from the chat",
 

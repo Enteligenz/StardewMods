@@ -34,6 +34,8 @@ namespace TwitchChatIntegration
             public string Sender { get; set; }
             public string Message { get; set; }
             public string Channel { get; set; }
+            public string Color { get; set; } = string.Empty;
+            public bool IsSystem { get; set; } = false;
         }
 
         public TwitchBot(IMonitor monitor)
@@ -103,25 +105,52 @@ namespace TwitchChatIntegration
                     if (split.Length > 2)
                     {
                         string IRCMessage = split[2];
+                        string channel = (split.Length > 3) ? split[3].TrimStart('#') : string.Empty;
+
+                        Func<string, string> GetMessage = (string MessageType) =>
+                        {
+                            string msgFindStart = $"{MessageType} #{channel} :";
+                            int messageStartLocation = line.IndexOf(msgFindStart);
+                            if (messageStartLocation == -1)
+                                return string.Empty;
+
+                            return line.Substring(messageStartLocation + msgFindStart.Length);
+                        };
+
+                        Func<string, string> GetTagString = (string FieldToLookFor) =>
+                        {
+                            FieldToLookFor += '=';
+                            int fieldLoc = split[0].IndexOf(FieldToLookFor);
+
+                            if (fieldLoc == -1)
+                                return string.Empty;
+
+                            int fieldMessageEnd = split[0].IndexOf(';', fieldLoc);
+                            if (fieldMessageEnd == -1)
+                                return string.Empty;
+
+                            fieldLoc += FieldToLookFor.Length;
+
+                            return split[0].Substring(fieldLoc, fieldMessageEnd - fieldLoc);
+                        };
+
                         // Normal message
                         if (IRCMessage == "PRIVMSG")
                         {
                             // Grab name
                             int exclamationPointPosition = split[1].IndexOf("!");
                             string username = split[1].Substring(1, exclamationPointPosition - 1);
-                            string channel = split[3];
 
                             // Find the message location
-                            string msgFindStart = $"PRIVMSG {channel} :";
-                            int messageStartLocation = line.IndexOf(msgFindStart);
-                            string message = line.Substring(messageStartLocation + msgFindStart.Length);
-                            
+                            string message = GetMessage("PRIVMSG");
+                            string colorHex = GetTagString("color");
 
                             this.OnMessage(this, new TwitchChatMessage
                             {
                                 Message = message,
                                 Sender = username,
-                                Channel = channel.TrimStart('#')
+                                Channel = channel,
+                                Color = colorHex
                             });
                         }
                         else if (IRCMessage == "JOIN" || IRCMessage == "ROOMSTATE") // Channel connection established
@@ -131,6 +160,38 @@ namespace TwitchChatIntegration
 
                             this.OnStatus.Invoke(false, "twitch.status.connected");
                             this.hasAlertedConnected = true;
+                        }
+                        else if (IRCMessage == "USERNOTICE")
+                        {
+                            // Code for raids and subscriptions
+
+                            // Get the system-msg from twitch
+                            string systemMessage = GetTagString("system-msg").Replace("\\s", " ");
+                            // Message Type
+                            string messageType = GetTagString("msg-id");
+
+                            // Resubscriptions can have an multiple message assigned to them.
+                            if (messageType == "resub")
+                            {
+                                string username = GetTagString("login");
+                                string message = GetMessage("USERNOTICE");
+                                string colorHex = GetTagString("color");
+                                this.OnMessage(this, new TwitchChatMessage
+                                {
+                                    Message = message,
+                                    Sender = username,
+                                    Channel = channel,
+                                    Color = colorHex
+                                });
+                            }
+
+                            this.OnMessage(this, new TwitchChatMessage
+                            {
+                                Message = systemMessage,
+                                Sender = "twitch",
+                                Channel = channel,
+                                IsSystem = true
+                            });
                         }
                         else if (IRCMessage == "RECONNECT")
                         {

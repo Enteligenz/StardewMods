@@ -71,18 +71,18 @@ namespace TwitchChatIntegration
             // Twitch Connection Stuff
             configMenu.AddSectionTitle(
                 mod: this.ModManifest,
-                text: () => "Twitch Connection Info"
+                text: () => this.Helper.Translation.Get("config.twitch.connection.title")
             );
 
             configMenu.AddParagraph(
                 mod: this.ModManifest,
-                text: () => "NOTE: Any changes to the Twitch Connection Info requires a game restart in order to apply."
+                text: () => this.Helper.Translation.Get("config.twitch.connection.info")
             );
 
             configMenu.AddTextOption(
                 mod: this.ModManifest,
-                name: () => "Chat Username",
-                tooltip: () => "The name of the Twitch account you want to use as login",
+                name: () => this.Helper.Translation.Get("config.twitch.connection.username"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.connection.username.tooltip"),
                 getValue: () => this.Config.Username,
                 setValue: value => this.Config.Username = value,
                 fieldId: "username"
@@ -90,8 +90,8 @@ namespace TwitchChatIntegration
 
             configMenu.AddTextOption(
                 mod: this.ModManifest,
-                name: () => "Target Channel",
-                tooltip: () => "The name of the Twitch channel you want to read the chat of",
+                name: () => this.Helper.Translation.Get("config.twitch.connection.targetchannel"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.connection.targetchannel.tooltip"),
                 getValue: () => this.Config.TargetChannel, 
                 setValue: value => this.Config.TargetChannel = value,
                 fieldId: "target"
@@ -100,28 +100,34 @@ namespace TwitchChatIntegration
             configMenu.AddPageLink(
                 mod: this.ModManifest,
                 pageId: "twitchPassword",
-                text: () => "Click to set chat password",
-                tooltip: () => "DO NOT CLICK THIS ON STREAM");
-
-            configMenu.SetTitleScreenOnlyForNextOptions(mod: this.ModManifest, false);
+                text: () => this.Helper.Translation.Get("config.twitch.connection.pagelink"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.connection.pagelink.tooltip")
+            );
 
             configMenu.AddSectionTitle(
                 mod: this.ModManifest,
-                text: () => "Behavior Options"
+                text: () => this.Helper.Translation.Get("config.twitch.behavior.title")
             );
+
+            configMenu.AddParagraph(
+                mod: this.ModManifest,
+                text: () => this.Helper.Translation.Get("config.twitch.behavior.info")
+            );
+
+            configMenu.SetTitleScreenOnlyForNextOptions(mod: this.ModManifest, false);
 
             configMenu.AddBoolOption(
                 mod: this.ModManifest,
-                name: () => "Ignore Common Chat Commands",
-                tooltip: () => "This will make any message that's prefixed with a ! to not appear",
+                name: () => this.Helper.Translation.Get("config.twitch.behavior.ignorecommands"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.behavior.ignorecommands.tooltip"),
                 getValue: () => this.Config.IgnoreCommands,
                 setValue: value => this.Config.IgnoreCommands = value
             );
 
             configMenu.AddTextOption(
                 mod: this.ModManifest,
-                name: () => "User Accounts to Filter",
-                tooltip: () => "Comma separated list of account names to ignore from the chat",
+                name: () => this.Helper.Translation.Get("config.twitch.behavior.filteredusers"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.behavior.filteredusers.tooltip"),
                 getValue: () => string.Join(",", this.Config.IgnoredAccounts),
                 setValue: value => {
                     // Remove any spaces the user has
@@ -138,18 +144,18 @@ namespace TwitchChatIntegration
             configMenu.AddPage(
                 mod: this.ModManifest,
                 pageId: "twitchPassword",
-                pageTitle: () => "Twitch OAuth Password"
+                pageTitle: () => this.Helper.Translation.Get("config.twitch.password.title")
             );
 
             configMenu.AddParagraph(
                 mod: this.ModManifest,
-                text: () => "Note that you will need to fully restart the game if you change the value below"
+                text: () => this.Helper.Translation.Get("config.twitch.password.info")
             );
 
             configMenu.AddTextOption(
                 mod: this.ModManifest,
-                name: () => "Chat Password",
-                tooltip: () => $"This is the account password for the twitch account set as the username {this.Config.Username}",
+                name: () => this.Helper.Translation.Get("config.twitch.password.password"),
+                tooltip: () => this.Helper.Translation.Get("config.twitch.password.password.tooltip"),
                 getValue: () => this.Config.Password,
                 setValue: value => this.Config.Password = value,
                 fieldId: "password"

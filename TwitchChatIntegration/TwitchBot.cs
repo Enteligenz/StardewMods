@@ -15,6 +15,8 @@ namespace TwitchChatIntegration
 
         private string username;
         private string password;
+        private bool hasAlertedConnected = false;
+        private bool shouldRun = true;
         private StreamReader streamReader;
         private StreamWriter streamWriter;
         private TaskCompletionSource<int> connected = new TaskCompletionSource<int>();
@@ -24,11 +26,19 @@ namespace TwitchChatIntegration
         public event TwitchChatEventHandler OnMessage = delegate { };
         public delegate void TwitchChatEventHandler(object sender, TwitchChatMessage e);
 
+        public event TwitchChatStatusHandler OnStatus = delegate { };
+        public delegate void TwitchChatStatusHandler(bool isError, string locKey, string rawMessage = "");
+
         public class TwitchChatMessage : EventArgs
         {
             public string Sender { get; set; }
             public string Message { get; set; }
             public string Channel { get; set; }
+        }
+
+        public TwitchBot(IMonitor monitor)
+        {
+            this.monitor = monitor;
         }
 
         public TwitchBot(string username, string password, IMonitor monitor)
@@ -37,6 +47,15 @@ namespace TwitchChatIntegration
             this.password = password;
             this.monitor = monitor;
         }
+
+        public void SetUserPass(string username, string password)
+        {
+            this.username = username;
+            this.password = password;
+            this.hasAlertedConnected = false;
+        }
+
+        public bool IsConnected() => this.hasAlertedConnected;
 
         public async Task Start()
         {
@@ -59,9 +78,14 @@ namespace TwitchChatIntegration
             try
             {
                 // Permanent loop waiting for new Twitch messages
-                while (true)
+                while (this.shouldRun)
                 {
                     string line = await streamReader.ReadLineAsync();
+
+                    // If we disconnect between the last read and now, go ahead and disconnect.
+                    if (!this.shouldRun)
+                        break;
+
                     string[] split = line.Split(' ');
 
                     // PING :tmi.twitch.tv
@@ -71,36 +95,66 @@ namespace TwitchChatIntegration
                         await streamWriter.WriteLineAsync($"PONG {split[1]}");
                     }
 
-                    // Normal message
-                    if (split.Length > 2 && split[1] == "PRIVMSG")
+                    // Twitch IRC Message Handling
+                    if (split.Length > 2)
                     {
-                        // Grab name
-                        int exclamationPointPosition = split[0].IndexOf("!");
-                        string username = split[0].Substring(1, exclamationPointPosition - 1);
-                        // Skip the first character, the first colon, then find the next colon
-                        int secondColonPosition = line.IndexOf(':', 1);
-                        string message = line.Substring(secondColonPosition + 1);
-                        string channel = split[2].TrimStart('#');
-
-                        this.OnMessage(this, new TwitchChatMessage
+                        string IRCMessage = split[1];
+                        // Normal message
+                        if (IRCMessage == "PRIVMSG")
                         {
-                            Message = message,
-                            Sender = username,
-                            Channel = channel
-                        });
+                            // Grab name
+                            int exclamationPointPosition = split[0].IndexOf("!");
+                            string username = split[0].Substring(1, exclamationPointPosition - 1);
+                            // Skip the first character, the first colon, then find the next colon
+                            int secondColonPosition = line.IndexOf(':', 1);
+                            string message = line.Substring(secondColonPosition + 1);
+                            string channel = split[2].TrimStart('#');
+
+                            this.OnMessage(this, new TwitchChatMessage
+                            {
+                                Message = message,
+                                Sender = username,
+                                Channel = channel
+                            });
+                        }
+                        else if (IRCMessage == "JOIN" || IRCMessage == "ROOMSTATE") // Channel connection established
+                        {
+                            if (this.hasAlertedConnected)
+                                continue;
+
+                            this.OnStatus.Invoke(false, "twitch.status.connected");
+                            this.hasAlertedConnected = true;
+                        }
+                        else if (IRCMessage == "RECONNECT")
+                        {
+                            this.OnStatus.Invoke(true, "twitch.status.error.reconnect");
+                        }
                     }
                 }
             }
             catch (NullReferenceException)
             {
                 this.monitor.Log($"Encountered an error, most likely caused by invalid Twitch login credentials.", LogLevel.Debug);
+                this.OnStatus.Invoke(true, "twitch.status.error.exception");
             }
+
+            // Cleanup our connections...
+            tcpClient.Close();
+            streamReader.Close();
+            streamWriter.Close();
         }
 
         public async Task JoinChannel(string channel)
         {
             await connected.Task;
+            this.OnStatus.Invoke(false, "twitch.status.connecting");
             await streamWriter.WriteLineAsync($"JOIN #{channel}");
+        }
+
+        public void Disconnect()
+        {
+            // This will kill the main processing loop, rendering the tcpClient to close.
+            this.shouldRun = false;
         }
 
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)

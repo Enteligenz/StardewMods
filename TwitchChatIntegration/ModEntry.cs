@@ -13,7 +13,6 @@ namespace TwitchChatIntegration
 {
     internal sealed class ModEntry : Mod
     {
-
         /// <summary> List of all possible chat colors. </summary>
         readonly Color[] ChatColors =
         {
@@ -39,19 +38,66 @@ namespace TwitchChatIntegration
         /// <summary> Mod configuration from the player containing login credentials for a Twitch account. </summary>
         private ModConfig Config;
 
-        public override async void Entry(IModHelper helper)
+        /// <summary> Twitch bot instance </summary>
+        private TwitchBot Bot;
+
+        public override void Entry(IModHelper helper)
         {
             this.Helper.Events.GameLoop.GameLaunched += OnGameLaunched;
+            this.Helper.Events.GameLoop.SaveLoaded += OnGameLoaded;
+            this.Helper.Events.GameLoop.ReturnedToTitle += OnGameReturned;
+
             this.Config = this.Helper.ReadConfig<ModConfig>();
 
-            var twitchBot = new TwitchBot(this.Config.Username, this.Config.Password, this.Monitor);
-            twitchBot.OnMessage += this.OnTwitchMessage;
+            InitializeBot();
+        }
 
-            twitchBot.Start().SafeFireAndForget();
-            await twitchBot.JoinChannel(this.Config.TargetChannel);
+        /// <summary> Initializes the TwitchBot for this mod, and sets up with the correct delegate hooks </summary>
+        private void InitializeBot()
+        {
+            // The idea behind this function is to allow us to potentially spawn up a bot again
+            if (this.Bot != null)
+            {
+                this.Bot.Disconnect();
+                // NOTE: This should probably wait for the disconnect to go through.
+                this.Bot = null;
+            }
+
+            this.Bot = new TwitchBot(this.Monitor);
+            this.Bot.OnMessage += this.OnTwitchMessage;
+            this.Bot.OnStatus += this.OnStatus;
+        }
+
+        /// <summary> Handle connecting to the twitch chat once the game is loaded </summary>
+        private async void OnGameLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            // Check if config is set properly
+            if (!this.Config.IsValid())
+            {
+                this.OnStatus(true, "twitch.status.badconfig");
+                return;
+            }
+
+            // Prevent re-execution if we're already connected
+            if (this.Bot.IsConnected())
+            {
+                this.OnStatus(false, "twitch.status.connected");
+                return;
+            }
+
+            this.Bot.SetUserPass(this.Config.Username, this.Config.Password);
+            this.Bot.Start().SafeFireAndForget();
+            await this.Bot.JoinChannel(this.Config.TargetChannel);
             await Task.Delay(-1);
         }
 
+        /// <summary> Handles bot reinitialization upon going back to the main menu </summary>
+        private void OnGameReturned(object sender, EventArgs e)
+        {
+            InitializeBot();
+        }
+
+        /// <summary> Handles GMCM support for modifying configs in game. </summary>
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
             // get Generic Mod Config Menu's API (if it's installed)
@@ -182,6 +228,30 @@ namespace TwitchChatIntegration
             Color chatColor = this.ChatColors[ColorIdx];
 
             Game1.chatBox.addMessage(twitchChatMessage.Sender + ": " + twitchChatMessage.Message, chatColor);
+        }
+
+        /// <summary> Displays an on-screen HUD message on messages from the mod. </summary>
+        private void OnStatus(bool isError, string locMessage, string rawMessage="")
+        {
+            if (!Context.IsWorldReady)
+                return;
+            
+            int MessageType = isError ? 3 : 2;
+
+            // Format messaging
+            string DisplayString;
+            if (!string.IsNullOrEmpty(locMessage))
+                DisplayString = this.Helper.Translation.Get(locMessage);
+            else
+                DisplayString = rawMessage;
+
+            // If after filling up the string, it's still empty, don't display anything.
+            if (string.IsNullOrEmpty(DisplayString))
+                return;
+
+            string StatusBoilerplate = this.Helper.Translation.Get("twitch.status.boilerplate");
+            string FormattedMessage = $"{StatusBoilerplate}: {DisplayString}";
+            Game1.addHUDMessage(new HUDMessage(FormattedMessage, MessageType));
         }
     }
 }

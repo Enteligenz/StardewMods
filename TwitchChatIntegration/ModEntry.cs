@@ -52,6 +52,7 @@ namespace TwitchChatIntegration
             await Task.Delay(-1);
         }
 
+        /// <summary> Handles GMCM support for modifying configs in game. </summary>
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
             // get Generic Mod Config Menu's API (if it's installed)

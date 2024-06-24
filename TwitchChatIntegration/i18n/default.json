@@ -1,0 +1,29 @@
+{
+	"config.twitch.connection.title": "Twitch Connection Info",
+	"config.twitch.connection.info": "NOTE: Any changes to the Twitch Connection Info requires a game restart in order to apply.",
+	
+	
+	"config.twitch.connection.username": "Chat Username",
+	"config.twitch.connection.username.tooltip": "The name of the Twitch account you want to use as login",
+	
+	"config.twitch.connection.targetchannel": "Target Channel",
+	"config.twitch.connection.targetchannel.tooltip": "The name of the Twitch channel you want to read the chat of",
+	
+	"config.twitch.connection.pagelink": "Click to set chat password",
+	"config.twitch.connection.pagelink.tooltip": "DO NOT CLICK THIS ON STREAM",
+	
+	"config.twitch.behavior.title": "Behavior Options",
+	"config.twitch.behavior.info": "This area can be changed at any time without a restart.",
+	
+	"config.twitch.behavior.ignorecommands": "Ignore Common Chat Commands",
+	"config.twitch.behavior.ignorecommands.tooltip": "This will make any message that's prefixed with a ! to not appear",
+	
+	"config.twitch.behavior.filteredusers": "User Accounts to Filter",
+	"config.twitch.behavior.filteredusers.tooltip": "Comma separated list of account names to ignore from the chat",
+	
+	"config.twitch.password.title": "Twitch OAuth Password",
+	"config.twitch.password.info": "NOTE: you will need to fully restart the game if you change the value below",
+	
+	"config.twitch.password.password": "Chat Password",
+	"config.twitch.password.password.tooltip": "This is the account password for the twitch account set as the username"
+}

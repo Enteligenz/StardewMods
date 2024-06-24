@@ -165,11 +165,11 @@ namespace TwitchChatIntegration
                 return;
 
             // Ignore common Twitch command prefixes
-            if (Config.IgnoreCommands && twitchChatMessage.Message[0] == '!')
+            if (this.Config.IgnoreCommands && twitchChatMessage.Message[0] == '!')
                 return;
 
             // Ignore users on our ignored list
-            if (Config.IgnoredAccounts.Contains(twitchChatMessage.Sender, StringComparer.InvariantCultureIgnoreCase))
+            if (this.Config.IgnoredAccounts.Contains(twitchChatMessage.Sender, StringComparer.InvariantCultureIgnoreCase))
                 return;
 
             int ColorIdx = Math.Abs(twitchChatMessage.Sender.GetHashCode()) % this.ChatColors.Length;

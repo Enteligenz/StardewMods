@@ -9,6 +9,7 @@ namespace TwitchChatIntegration
         public string TargetChannel { get; set; } = String.Empty;
         public string[] IgnoredAccounts { get; set; } = Array.Empty<string>();
         public bool IgnoreCommands { get; set; } = false;
+        public bool ShowSystemMessages { get; set; } = true;
 
         public bool IsValid()
         {

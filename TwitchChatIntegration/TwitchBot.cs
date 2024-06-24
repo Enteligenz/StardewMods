@@ -107,7 +107,7 @@ namespace TwitchChatIntegration
                         string IRCMessage = split[2];
                         string channel = (split.Length > 3) ? split[3].TrimStart('#') : string.Empty;
 
-                        Func<string, string> GetMessage = (string MessageType) =>
+                        string GetMessage(string MessageType)
                         {
                             string msgFindStart = $"{MessageType} #{channel} :";
                             int messageStartLocation = line.IndexOf(msgFindStart);
@@ -117,7 +117,7 @@ namespace TwitchChatIntegration
                             return line.Substring(messageStartLocation + msgFindStart.Length);
                         };
 
-                        Func<string, string> GetTagString = (string FieldToLookFor) =>
+                        string GetTagString(string FieldToLookFor)
                         {
                             FieldToLookFor += '=';
                             int fieldLoc = split[0].IndexOf(FieldToLookFor);

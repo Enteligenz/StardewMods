@@ -171,7 +171,8 @@ namespace TwitchChatIntegration
                             string messageType = GetTagString("msg-id");
 
                             // Resubscriptions can have an multiple message assigned to them.
-                            if (messageType == "resub")
+                            // Watch streaks also show messages too
+                            if (messageType == "resub" || messageType == "viewermilestone")
                             {
                                 string username = GetTagString("login");
                                 string message = GetMessage("USERNOTICE");

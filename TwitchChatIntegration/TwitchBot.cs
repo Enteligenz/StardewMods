@@ -77,7 +77,8 @@ namespace TwitchChatIntegration
             await streamWriter.WriteLineAsync("CAP REQ :twitch.tv/commands twitch.tv/tags");
 
             // Login
-            await streamWriter.WriteLineAsync($"PASS {password}");
+            string formattedPass = password.Replace("oauth:", string.Empty);
+            await streamWriter.WriteLineAsync($"PASS oauth:{formattedPass}");
             await streamWriter.WriteLineAsync($"NICK {username}");
             connected.SetResult(0);
 

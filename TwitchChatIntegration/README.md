@@ -7,7 +7,7 @@ In multiplayer, the Twitch messages will only be sent to the chat of the mod use
 
 ## Usage
 You will need to provide a Twitch account that the chat bot can use, you can use the one you use to stream or a separate one.
-To log in the bot needs a user name and an OAuth token, which you can create here: https://twitchapps.com/tmi/.
+To log in the bot needs a user name and an OAuth token, which you can create here: [https://twitchtokengenerator.com/](https://twitchtokengenerator.com/) choose the "Bot Chat Token" option.
 Then you need to fill in this information along with the name of the channel you want to read the chat from into the file ``config.json``
 inside of the mod folder that is created when first starting the game with this mod installed.
 

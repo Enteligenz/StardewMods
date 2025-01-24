@@ -13,7 +13,7 @@ You will need to provide a Twitch account that the chat bot can use, you can use
 * Go through the login process and fill out the Captcha
 * In the `Generated Tokens` section, copy the `ACCESS TOKEN` value.
 * If not using GMCM, run the game once to generate the `config.json` file. Once the file is made, open it in a text editor and fill out the `Username` and `Password` (Use the `ACCESS TOKEN` you generated in the last step) sections.
-* Make sure to also fill out the `TargetChannel` section too.
+* Make sure to also fill out the `TargetChannel` section with the channel you want to inspect (usually your own channel).
 
 ## Acknowledgements
 

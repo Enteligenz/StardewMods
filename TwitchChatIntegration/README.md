@@ -21,3 +21,5 @@ The idea for this mod comes from [RyanGoods](https://github.com/StardewModders/m
 
 The code for the Twitch bot comes from [this article](https://medium.com/swlh/writing-a-twitch-bot-from-scratch-in-c-f59d9fed10f3),
 I seriously couldn't have made this mod without it.
+
+Also, at this point pretty much all of the updates have been done by [SocksTheWolf](https://github.com/SocksTheWolf), so all the credit for cool new features go to him!

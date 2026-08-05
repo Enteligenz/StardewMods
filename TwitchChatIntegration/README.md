@@ -7,9 +7,13 @@ In multiplayer, the Twitch messages will only be sent to the chat of the mod use
 
 ## Usage
 You will need to provide a Twitch account that the chat bot can use, you can use the one you use to stream or a separate one.
-To log in the bot needs a user name and an OAuth token, which you can create here: https://twitchapps.com/tmi/.
-Then you need to fill in this information along with the name of the channel you want to read the chat from into the file ``config.json``
-inside of the mod folder that is created when first starting the game with this mod installed.
+
+### To Login:
+* Create a "Bot Chat Token" from here: [https://twitchtokengenerator.com/](https://twitchtokengenerator.com/) choose the "Bot Chat Token" option.
+* Go through the login process and fill out the Captcha
+* In the `Generated Tokens` section, copy the `ACCESS TOKEN` value.
+* If not using GMCM, run the game once to generate the `config.json` file. Once the file is made, open it in a text editor and fill out the `Username` and `Password` (Use the `ACCESS TOKEN` you generated in the last step) sections.
+* Make sure to also fill out the `TargetChannel` section with the channel you want to inspect (usually your own channel).
 
 ## Acknowledgements
 
@@ -17,3 +21,5 @@ The idea for this mod comes from [RyanGoods](https://github.com/StardewModders/m
 
 The code for the Twitch bot comes from [this article](https://medium.com/swlh/writing-a-twitch-bot-from-scratch-in-c-f59d9fed10f3),
 I seriously couldn't have made this mod without it.
+
+Also, at this point pretty much all of the updates have been done by [SocksTheWolf](https://github.com/SocksTheWolf), so all the credit for cool new features go to him!

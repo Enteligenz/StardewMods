@@ -25,7 +25,7 @@
 	"config.twitch.behavior.filteredusers.tooltip": "Comma separated list of account names to ignore from the chat",
 
 	"config.twitch.password.title": "Twitch OAuth Password",
-	"config.twitch.password.info": "NOTE: this must be the full chat token including the oauth: prefix",
+	"config.twitch.password.info": "Generate a Bot Chat Token from twitchtokengenerator.com and paste it here",
 
 	"config.twitch.password.password": "Chat Password",
 	"config.twitch.password.password.tooltip": "This is the account password for the twitch account set as the username",

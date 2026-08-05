@@ -20,8 +20,7 @@ namespace TwitchChatIntegration
 
             return FieldValid.Invoke(this.Username) && 
                 FieldValid.Invoke(this.Password) && 
-                FieldValid.Invoke(this.TargetChannel) &&
-                this.Password.Contains("oauth:");
+                FieldValid.Invoke(this.TargetChannel);
         }
     }
 }

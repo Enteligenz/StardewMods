@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace FoodCravings
 {
@@ -11,7 +12,8 @@ namespace FoodCravings
         public int attackDebuff { get; set; } = -2;
         public int defenseDebuff { get; set; } = 0;
         public int speedDebuff { get; set; } = 0;
-        public string[] recipeBlacklist { get; set; } = { };
+        public int buffDuration { get; set; } = 540000;
+        public List<string> recipeBlacklist { get; set; } = new() { };
         public bool seededRandom { get; set; } = false;
     }
 }

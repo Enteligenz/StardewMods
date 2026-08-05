@@ -1,7 +1,30 @@
 {
-	"fulfilled": "Craving fulfilled",
-	"unfulfilled": "Craving unfulfilled",
-	"hud-msg": "Craving: ",
-	"quest-desc": "I am craving some ",
-	"quest-obj": "Consume "
+	// Buff icon
+	"buff.fulfilled": "Craving fulfilled",
+	"buff.unfulfilled": "Craving unfulfilled",
+	"buff.hud-msg": "Craving: ",
+	// Quest framework
+	"quest.desc": "I am craving some ",
+	"quest.obj": "Consume ",
+	// Generic Mod Menu
+	"menu.hangry-mode": "Hangry Mode",
+	"menu.hangry-mode-desc": "Adds a debuff that lasts until a craving is fulfilled.",
+	"menu.attack-buff": "Attack Buff",
+	"menu.attack-buff-desc": "How strong the attack buff from fulfilling a craving should be.",
+	"menu.defense-buff": "Defense Buff",
+	"menu.defense-buff-desc": "How strong the defense buff from fulfilling a craving should be.",
+	"menu.speed-buff": "Speed Buff",
+	"menu.speed-buff-desc": "How strong the speed buff from fulfilling a craving should be.",
+	"menu.attack-debuff": "Attack Debuff",
+	"menu.attack-debuff-desc": "How strong the attack debuff before fulfilling a craving should be.",
+	"menu.defense-debuff": "Defense Debuff",
+	"menu.defense-debuff-desc": "How strong the defense debuff before fulfilling a craving should be.",
+	"menu.speed-debuff": "Speed Debuff",
+	"menu.speed-debuff-desc": "How strong the speed debuff before fulfilling a craving should be.",
+	"menu.buff-duration": "Buff Duration",
+	"menu.buff-duration-desc": "How long the buffs after fulfilling a craving should last.",
+	"menu.blacklist": "Recipe Blacklist",
+	"menu.blacklist-desc": "A comma-separated list of recipe names that should never appear as the daily craving.",
+	"menu.seeded-random": "Seeded Random",
+	"menu.seeded-random-desc": "Makes the daily craving consistent for each day even when quitting the game."
 }

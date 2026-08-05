@@ -8,9 +8,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Objects;
-//using QuestFramework.Api;
-//using QuestFramework.Quests;
-//using QuestFramework;
+using GenericModConfigMenu;
 using System.IO;
 
 namespace FoodCravings
@@ -26,14 +24,7 @@ namespace FoodCravings
         //Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
         private ModConfig Config;
         bool isHangryMode;
-        string[] recipeBlacklist;
-
-        //IQuestApi api;
-        //IManagedQuestApi managedApi;
-        //CustomQuest quest;
-
-        string fulfilledText, unfulfilledText, HUDText;//, questDescription, questObjective;
-
+        List<string> recipeBlacklist;
 
         public override void Entry(IModHelper helper)
         {
@@ -44,21 +35,118 @@ namespace FoodCravings
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
             helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
 
-            // Read translations
-            // I18n.Init(helper.Translation); // ??
-            this.fulfilledText = helper.Translation.Get("fulfilled");
-            this.unfulfilledText = helper.Translation.Get("unfulfilled");
-            this.HUDText = helper.Translation.Get("hud-msg");
-            //this.questDescription = helper.Translation.Get("quest-desc");
-            //this.questObjective = helper.Translation.Get("quest-obj");
+            helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+        }
 
+
+        /// <summary> Handles GMCM support for modifying configs in game. </summary>
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            // get Generic Mod Config Menu's API (if it's installed)
+            var configMenu = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null)
+                return;
+
+            // register mod
+            configMenu.Register(
+                mod: this.ModManifest,
+                reset: () => this.Config = new ModConfig(),
+                save: () => this.Helper.WriteConfig(this.Config)
+            );
+
+            //configMenu.SetTitleScreenOnlyForNextOptions(mod: this.ModManifest, true);
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.hangry-mode"),
+                tooltip: () => this.Helper.Translation.Get("menu.hangry-mode-desc"),
+                getValue: () => this.Config.useHangryMode,
+                setValue: value => this.Config.useHangryMode = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.attack-buff"),
+                tooltip: () => this.Helper.Translation.Get("menu.attack-buff-desc"),
+                getValue: () => this.Config.attackBuff,
+                setValue: value => this.Config.attackBuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.defense-buff"),
+                tooltip: () => this.Helper.Translation.Get("menu.defense-buff-desc"),
+                getValue: () => this.Config.defenseBuff,
+                setValue: value => this.Config.defenseBuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.speed-buff"),
+                tooltip: () => this.Helper.Translation.Get("menu.speed-buff-desc"),
+                getValue: () => this.Config.speedBuff,
+                setValue: value => this.Config.speedBuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.attack-debuff"),
+                tooltip: () => this.Helper.Translation.Get("menu.attack-debuff-desc"),
+                getValue: () => this.Config.attackDebuff,
+                setValue: value => this.Config.attackDebuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.defense-debuff"),
+                tooltip: () => this.Helper.Translation.Get("menu.defense-debuff-desc"),
+                getValue: () => this.Config.defenseDebuff,
+                setValue: value => this.Config.defenseDebuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.speed-debuff"),
+                tooltip: () => this.Helper.Translation.Get("menu.speed-debuff-desc"),
+                getValue: () => this.Config.speedDebuff,
+                setValue: value => this.Config.speedDebuff = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.buff-duration"),
+                tooltip: () => this.Helper.Translation.Get("menu.buff-duration-desc"),
+                getValue: () => this.Config.buffDuration,
+                setValue: value => this.Config.buffDuration = value
+            );
+
+            configMenu.AddTextOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.blacklist"),
+                tooltip: () => this.Helper.Translation.Get("menu.blacklist-desc"),
+                getValue: () => string.Join(", ", this.Config.recipeBlacklist),
+                setValue: value => this.Config.recipeBlacklist = value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
+            );
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.seeded-random"),
+                tooltip: () => this.Helper.Translation.Get("menu.seeded-random-desc"),
+                getValue: () => this.Config.seededRandom,
+                setValue: value => this.Config.seededRandom = value
+            );
+        }
+
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
+        {
+            // Create buffs based on current config values
             this.cravingBuff = new Buff(
                 id: "Hexenentendrache.FoodCravings_Buff",
-                displayName: this.fulfilledText,
+                displayName: this.Helper.Translation.Get("buff.fulfilled"),
                 iconTexture: this.Helper.ModContent.Load<Texture2D>("assets/food_craving_icon.png"),
-                duration: 540000,
+                duration: this.Config.buffDuration,
                 effects: new StardewValley.Buffs.BuffEffects()
-                { // TODO change values if necessary
+                {
                     Attack = { this.Config.attackBuff },
                     Defense = { this.Config.defenseBuff },
                     Speed = { this.Config.speedBuff }
@@ -67,38 +155,20 @@ namespace FoodCravings
 
             this.cravingDebuff = new Buff(
                 id: "Hexenentendrache.FoodCravings_Debuff",
-                displayName: this.unfulfilledText,
+                displayName: this.Helper.Translation.Get("buff.unfulfilled"),
                 iconTexture: this.Helper.ModContent.Load<Texture2D>("assets/food_craving_debuff_icon.png"),
                 duration: Buff.ENDLESS,
                 effects: new StardewValley.Buffs.BuffEffects()
-                { // TODO change values if necessary
+                {
                     Attack = { this.Config.attackDebuff },
                     Defense = { this.Config.defenseDebuff },
                     Speed = { this.Config.speedDebuff }
                 }
             );
 
-            helper.Events.GameLoop.GameLaunched += this.OnGameStarted;
-        }
+            // Update recipe blacklist
+            this.recipeBlacklist = this.Config.recipeBlacklist;
 
-
-        private void OnGameStarted(object sender, GameLaunchedEventArgs e)
-        {
-            //bool isLoaded = this.Helper.ModRegistry.IsLoaded("PurrplingCat.QuestFramework");
-            //this.api = this.Helper.ModRegistry.GetApi<IQuestApi>("PurrplingCat.QuestFramework");
-            //this.managedApi = api.GetManagedApi(this.ModManifest);
-
-            //this.api.Events.GettingReady += (_sender, _e) => {
-                //this.quest = new CustomQuest();
-                //this.quest.Name = "food_craving";
-                //this.quest.BaseType = QuestType.Basic;
-                //this.quest.Title = "Food Craving";
-                //this.managedApi.RegisterQuest(this.quest);
-            //};
-        }
-
-        private void OnDayStarted(object sender, DayStartedEventArgs e)
-        {
             // Get list of all known recipes
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
 
@@ -133,12 +203,8 @@ namespace FoodCravings
                 this.Monitor.Log($"recipe blacklist: {rec}.", LogLevel.Debug);
             }
 
-            // Add quest for craving into quest tab
-            Game1.addHUDMessage(new HUDMessage(this.HUDText + this.DailyCravingName, 2));
-            //if (!this.CravingFulfilled) this.managedApi.CompleteQuest("food_craving"); // Remove old food craving quest in case it was not fulfilled
-            //this.quest.Description = this.questDescription + this.DailyCravingName + "...";
-            //this.quest.Objective = this.questObjective + this.DailyCravingName + ".";
-            //this.managedApi.AcceptQuest("food_craving", true);
+            // Display HUD message naming the daily craving
+            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("buff.hud-msg") + this.DailyCravingName, 2));
 
             // Reset flag (buffs seem to automatically reset on next day)
             this.CravingFulfilled = false;
@@ -166,7 +232,6 @@ namespace FoodCravings
             }
 
             this.CravingFulfilled = true;
-            //this.managedApi.CompleteQuest("food_craving"); // Mark quest for craving as completed
 
             // Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
             Game1.player.applyBuff(this.cravingBuff);

@@ -26,5 +26,7 @@
 	"menu.blacklist": "Recipe Blacklist",
 	"menu.blacklist-desc": "A comma-separated list of recipe names that should never appear as the daily craving.",
 	"menu.seeded-random": "Seeded Random",
-	"menu.seeded-random-desc": "Makes the daily craving consistent for each day even when quitting the game."
+	"menu.seeded-random-desc": "Makes the daily craving consistent for each day even when quitting the game.",
+	// Console Commands
+	"cmd.docu": "Lists the internal key for every known cooking recipe (vanilla + modded), for use in the recipe blacklist config option."
 }

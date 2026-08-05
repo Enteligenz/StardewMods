@@ -10,18 +10,16 @@ using StardewValley;
 using StardewValley.Objects;
 using GenericModConfigMenu;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace FoodCravings
 {
     internal sealed class ModEntry : Mod
     {
-        Random rnd = new Random();
-        string DailyCravingKey;
-        string DailyCravingName;
+        string DailyCravingDisplayName;
         bool CravingFulfilled;
         Buff cravingBuff;
         Buff cravingDebuff;
-        //Dictionary<string, string> recipeDict = Game1.content.Load<Dictionary<string, string>>("Data\\CookingRecipes");
         private ModConfig Config;
         bool isHangryMode;
         List<string> recipeBlacklist;
@@ -33,29 +31,42 @@ namespace FoodCravings
             this.recipeBlacklist = this.Config.recipeBlacklist;
 
             helper.Events.GameLoop.DayStarted += this.OnDayStarted;
-            helper.Events.GameLoop.UpdateTicked += this.OnUpdateTicked;
+            helper.Events.GameLoop.UpdateTicked += this.OneSecondUpdateTicked;
 
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         }
 
+        /// <summary> Tries to find the display name for a given recipe key. </summary>
+        private string GetRecipeDisplayName(string recipeKey)
+        {
+            try
+            {
+                CraftingRecipe recipe = new CraftingRecipe(recipeKey, isCookingRecipe: true);
+                return recipe.DisplayName;
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"Couldn't resolve display name for recipe '{recipeKey}': {ex.Message}", LogLevel.Warn);
+                return recipeKey;
+            }
+        }
 
         /// <summary> Handles GMCM support for modifying configs in game. </summary>
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
         {
-            // get Generic Mod Config Menu's API (if it's installed)
-            var configMenu = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            // Get Generic Mod Config Menu's API (if it's installed)
+            IGenericModConfigMenuApi configMenu = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
             if (configMenu is null)
                 return;
 
-            // register mod
+            // Register mod
             configMenu.Register(
                 mod: this.ModManifest,
                 reset: () => this.Config = new ModConfig(),
                 save: () => this.Helper.WriteConfig(this.Config)
             );
 
-            //configMenu.SetTitleScreenOnlyForNextOptions(mod: this.ModManifest, true);
-
+            // GMCM Options
             configMenu.AddBoolOption(
                 mod: this.ModManifest,
                 name: () => this.Helper.Translation.Get("menu.hangry-mode"),
@@ -120,13 +131,13 @@ namespace FoodCravings
                 setValue: value => this.Config.buffDuration = value
             );
 
-            configMenu.AddTextOption(
-                mod: this.ModManifest,
-                name: () => this.Helper.Translation.Get("menu.blacklist"),
-                tooltip: () => this.Helper.Translation.Get("menu.blacklist-desc"),
-                getValue: () => string.Join(", ", this.Config.recipeBlacklist),
-                setValue: value => this.Config.recipeBlacklist = value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
-            );
+            //configMenu.AddTextOption(
+            //    mod: this.ModManifest,
+            //    name: () => this.Helper.Translation.Get("menu.blacklist"),
+            //    tooltip: () => this.Helper.Translation.Get("menu.blacklist-desc"),
+            //    getValue: () => string.Join(", ", this.Config.recipeBlacklist),
+            //    setValue: value => this.Config.recipeBlacklist = value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
+            //);
 
             configMenu.AddBoolOption(
                 mod: this.ModManifest,
@@ -139,6 +150,20 @@ namespace FoodCravings
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
+            // Update recipe blacklist
+            this.recipeBlacklist = this.Config.recipeBlacklist;
+
+            // Get list of display names of all valid recipes (must be known and not on the blacklist)
+            List<string> knownRecipes = Game1.player.cookingRecipes.Keys.Select(GetRecipeDisplayName).ToList();
+            List<string> validRecipes = knownRecipes.Where(r => !recipeBlacklist.Contains(r)).ToList();
+
+            if (knownRecipes.Count == 0)
+            {
+                Monitor.Log("Player has no known cooking recipes yet, so daily craving will be skipped.", LogLevel.Debug);
+                this.DailyCravingDisplayName = null;
+                return;
+            }
+
             // Create buffs based on current config values
             this.cravingBuff = new Buff(
                 id: "Hexenentendrache.FoodCravings_Buff",
@@ -166,45 +191,38 @@ namespace FoodCravings
                 }
             );
 
-            // Update recipe blacklist
-            this.recipeBlacklist = this.Config.recipeBlacklist;
+            // Check if there are any blacklist items that do not match any known recipe
+            foreach (string entry in Config.recipeBlacklist)
+            {
+                if (!knownRecipes.Contains(entry))
+                    Monitor.Log($"Recipe blacklist entry '{entry}' doesn't match any known recipe display name.", LogLevel.Warn);
+            }
 
-            // Get list of all known recipes
-            List<string> knownRecipes = Game1.player.cookingRecipes.Keys.ToList();
+            // Check if there are known recipes remaining after applying the blacklist
+            if (validRecipes.Count == 0)
+            {
+                Monitor.Log("All known recipes are blacklisted, so daily craving will be skipped.", LogLevel.Warn);
+                this.DailyCravingDisplayName = null;
+                return;
+            }
 
-            // Randomize food craving until non-blacklisted food is found
+            // Pick which random number generator to use
             if (this.Config.seededRandom)
             {
-                this.rnd = new Random(Game1.Date.ToString().GetHashCode());
+                Random rnd = Utility.CreateDaySaveRandom(49173);
+                this.DailyCravingDisplayName = validRecipes[rnd.Next(validRecipes.Count)];
             }
-            while (true)
+            else 
             {
-                this.DailyCravingKey = knownRecipes.ElementAt(this.rnd.Next(0, knownRecipes.Count));
-
-                // Find the proper display name of the food
-                this.DailyCravingName = this.DailyCravingKey; // For vanilla food (and some older mods) the key name will be the same as the display name
-                if (CraftingRecipe.cookingRecipes.TryGetValue(this.DailyCravingKey, out string recipe))
-                {
-                    string[] recipeParts = recipe.Split('/');
-                    if (recipeParts.Length == 6) // afaik modded food will follow this format, where the last part of the recipe is the name we want
-                    {
-                        this.DailyCravingName = recipeParts[5]; // Modded food might use i18n format as key, so we need to replace it with sth more readable
-                    }
-                }
-
-                if (!this.recipeBlacklist.Contains(this.DailyCravingName))
-                {
-                    break;
-                }
+                Random rnd = new Random();
+                this.DailyCravingDisplayName = validRecipes[rnd.Next(validRecipes.Count)];
             }
-            
-            foreach (string rec in this.recipeBlacklist)
-            {
-                this.Monitor.Log($"recipe blacklist: {rec}.", LogLevel.Debug);
-            }
+
+            //foreach (string rec in this.recipeBlacklist)
+            //    this.Monitor.Log($"recipe blacklist: {rec}.", LogLevel.Debug);
 
             // Display HUD message naming the daily craving
-            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("buff.hud-msg") + this.DailyCravingName, 2));
+            Game1.addHUDMessage(new HUDMessage(this.Helper.Translation.Get("buff.hud-msg") + this.DailyCravingDisplayName, 2));
 
             // Reset flag (buffs seem to automatically reset on next day)
             this.CravingFulfilled = false;
@@ -212,33 +230,28 @@ namespace FoodCravings
             // Apply craving debuff if necessary
             if (this.isHangryMode)
             {
-                // Game1.buffsDisplay.addOtherBuff(this.cravingDebuff);
                 Game1.player.applyBuff(this.cravingDebuff);
             }
         }
 
-        private void OnUpdateTicked(object sender, EventArgs e)
+        private void OneSecondUpdateTicked(object sender, EventArgs e)
         {
-            if (!Game1.player.isEating || this.CravingFulfilled) // Player is not eating or craving has already been fulfilled before
-            {
+            if (!Context.IsWorldReady || this.DailyCravingDisplayName is null)
                 return;
-            }
+
+            if (!Game1.player.isEating || this.CravingFulfilled) // Player is not eating or craving has already been fulfilled before
+                return;
 
             Item CurrentFood = Game1.player.itemToEat;
 
-            if (!this.DailyCravingKey.Equals(CurrentFood.Name)) // Player is eating food that is not craved
-            {
+            if (!this.DailyCravingDisplayName.Equals(CurrentFood.DisplayName)) // Player is eating food that is not craved
                 return;
-            }
 
             this.CravingFulfilled = true;
 
-            // Game1.buffsDisplay.addOtherBuff(this.cravingBuff); // Add buff for fulfilled craving
             Game1.player.applyBuff(this.cravingBuff);
             if (this.isHangryMode)
-            {
-                    Game1.player.buffs.Remove("Hexenentendrache.FoodCravings_Debuff"); // Remove debuff
-            }
+                Game1.player.buffs.Remove("Hexenentendrache.FoodCravings_Debuff"); // Remove debuff
         }
     }
 }

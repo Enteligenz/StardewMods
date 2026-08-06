@@ -67,12 +67,46 @@ namespace FoodCravings
             );
 
             // GMCM Options
+            configMenu.AddSectionTitle(
+                mod: this.ModManifest,
+                text: () => this.Helper.Translation.Get("menu.main-title")
+            );
+
             configMenu.AddBoolOption(
                 mod: this.ModManifest,
-                name: () => this.Helper.Translation.Get("menu.hangry-mode"),
-                tooltip: () => this.Helper.Translation.Get("menu.hangry-mode-desc"),
-                getValue: () => this.Config.useHangryMode,
-                setValue: value => this.Config.useHangryMode = value
+                name: () => this.Helper.Translation.Get("menu.no-kitchen"),
+                tooltip: () => this.Helper.Translation.Get("menu.no-kitchen-desc"),
+                getValue: () => this.Config.skipIfNoKitchen,
+                setValue: value => this.Config.skipIfNoKitchen = value
+            );
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.seeded-random"),
+                tooltip: () => this.Helper.Translation.Get("menu.seeded-random-desc"),
+                getValue: () => this.Config.useSeededRandom,
+                setValue: value => this.Config.useSeededRandom = value
+            );
+
+            configMenu.AddNumberOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.buff-duration"),
+                tooltip: () => this.Helper.Translation.Get("menu.buff-duration-desc"),
+                getValue: () => this.Config.buffDuration,
+                setValue: value => this.Config.buffDuration = value
+            );
+
+            configMenu.AddTextOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.blacklist"),
+                tooltip: () => this.Helper.Translation.Get("menu.blacklist-desc"),
+                getValue: () => string.Join(", ", this.Config.recipeBlacklist),
+                setValue: value => this.Config.recipeBlacklist = value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
+            );
+
+            configMenu.AddSectionTitle(
+                mod: this.ModManifest,
+                text: () => this.Helper.Translation.Get("menu.buff-title")
             );
 
             configMenu.AddNumberOption(
@@ -99,6 +133,19 @@ namespace FoodCravings
                 setValue: value => this.Config.speedBuff = value
             );
 
+            configMenu.AddSectionTitle(
+                mod: this.ModManifest,
+                text: () => this.Helper.Translation.Get("menu.debuff-title")
+            );
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => this.Helper.Translation.Get("menu.hangry-mode"),
+                tooltip: () => this.Helper.Translation.Get("menu.hangry-mode-desc"),
+                getValue: () => this.Config.useHangryMode,
+                setValue: value => this.Config.useHangryMode = value
+            );
+
             configMenu.AddNumberOption(
                 mod: this.ModManifest,
                 name: () => this.Helper.Translation.Get("menu.attack-debuff"),
@@ -122,30 +169,6 @@ namespace FoodCravings
                 getValue: () => this.Config.speedDebuff,
                 setValue: value => this.Config.speedDebuff = value
             );
-
-            configMenu.AddNumberOption(
-                mod: this.ModManifest,
-                name: () => this.Helper.Translation.Get("menu.buff-duration"),
-                tooltip: () => this.Helper.Translation.Get("menu.buff-duration-desc"),
-                getValue: () => this.Config.buffDuration,
-                setValue: value => this.Config.buffDuration = value
-            );
-
-            //configMenu.AddTextOption(
-            //    mod: this.ModManifest,
-            //    name: () => this.Helper.Translation.Get("menu.blacklist"),
-            //    tooltip: () => this.Helper.Translation.Get("menu.blacklist-desc"),
-            //    getValue: () => string.Join(", ", this.Config.recipeBlacklist),
-            //    setValue: value => this.Config.recipeBlacklist = value.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList()
-            //);
-
-            configMenu.AddBoolOption(
-                mod: this.ModManifest,
-                name: () => this.Helper.Translation.Get("menu.seeded-random"),
-                tooltip: () => this.Helper.Translation.Get("menu.seeded-random-desc"),
-                getValue: () => this.Config.seededRandom,
-                setValue: value => this.Config.seededRandom = value
-            );
         }
 
         private void OnDayStarted(object sender, DayStartedEventArgs e)
@@ -157,9 +180,9 @@ namespace FoodCravings
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.Select(GetRecipeDisplayName).ToList();
             List<string> validRecipes = knownRecipes.Where(r => !recipeBlacklist.Contains(r)).ToList();
 
-            if (knownRecipes.Count == 0)
+            if (this.Config.skipIfNoKitchen && Game1.player.HouseUpgradeLevel < 1)
             {
-                Monitor.Log("Player has no known cooking recipes yet, so daily craving will be skipped.", LogLevel.Debug);
+                Monitor.Log("Player does not have the kitchen unlocked yet, so daily craving will be skipped.", LogLevel.Debug);
                 this.DailyCravingDisplayName = null;
                 return;
             }
@@ -207,7 +230,7 @@ namespace FoodCravings
             }
 
             // Pick which random number generator to use
-            if (this.Config.seededRandom)
+            if (this.Config.useSeededRandom)
             {
                 Random rnd = Utility.CreateDaySaveRandom(49173);
                 this.DailyCravingDisplayName = validRecipes[rnd.Next(validRecipes.Count)];

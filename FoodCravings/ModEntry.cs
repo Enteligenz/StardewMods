@@ -202,7 +202,7 @@ namespace FoodCravings
 
             // Get list of display names of all valid recipes (must be known and not on the blacklist)
             List<string> knownRecipes = Game1.player.cookingRecipes.Keys.Select(GetRecipeDisplayName).ToList();
-            List<string> validRecipes = knownRecipes.Where(r => !recipeBlacklist.Contains(r)).ToList();
+            List<string> validRecipes = knownRecipes.Where(r => !recipeBlacklist.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
 
             if (this.Config.skipIfNoKitchen && Game1.player.HouseUpgradeLevel < 1)
             {
@@ -241,7 +241,7 @@ namespace FoodCravings
             // Check if there are any blacklist items that do not match any known recipe
             foreach (string entry in Config.recipeBlacklist)
             {
-                if (!knownRecipes.Contains(entry))
+                if (!knownRecipes.Contains(entry, StringComparer.OrdinalIgnoreCase))
                     Monitor.Log($"Recipe blacklist entry '{entry}' doesn't match any known recipe display name.", LogLevel.Warn);
             }
 

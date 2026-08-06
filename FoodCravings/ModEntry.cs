@@ -36,6 +36,23 @@ namespace FoodCravings
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         }
 
+        private void OnCravingCommand(string command, string[] args)
+        {
+            if (!Context.IsWorldReady)
+            {
+                Monitor.Log("Load a save first.", LogLevel.Info);
+                return;
+            }
+
+            if (this.DailyCravingDisplayName is null)
+            {
+                Monitor.Log("No craving today (no kitchen or all recipes blacklisted).", LogLevel.Info);
+                return;
+            }
+
+            Monitor.Log($"Today's craving: {this.DailyCravingDisplayName}.", LogLevel.Info);
+        }
+
         /// <summary> Tries to find the display name for a given recipe key. </summary>
         private string GetRecipeDisplayName(string recipeKey)
         {
@@ -64,6 +81,13 @@ namespace FoodCravings
                 mod: this.ModManifest,
                 reset: () => this.Config = new ModConfig(),
                 save: () => this.Helper.WriteConfig(this.Config)
+            );
+
+            // Console command for checking the daily craving
+            Helper.ConsoleCommands.Add(
+                name: "craving",
+                documentation: this.Helper.Translation.Get("cmd.craving"),
+                callback: this.OnCravingCommand
             );
 
             // GMCM Options

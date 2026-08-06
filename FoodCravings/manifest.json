@@ -7,6 +7,5 @@
   "EntryDll": "FoodCravings.dll",
   "MinimumApiVersion": "4.0.0",
   "UpdateKeys": [ "Nexus:17126" ],
-  "Dependencies": [
-  ]
+  "Dependencies": []
 }

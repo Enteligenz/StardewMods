@@ -30,5 +30,5 @@
 	"menu.speed-debuff": "Speed debuff",
 	"menu.speed-debuff-desc": "How strong the speed debuff before fulfilling a craving should be (only for hangry mode).",
 	// Console Commands
-	"cmd.docu": "Lists the internal key for every known cooking recipe (vanilla + modded), for use in the recipe blacklist config option."
+	"cmd.craving": "Show today's food craving, if any."
 }

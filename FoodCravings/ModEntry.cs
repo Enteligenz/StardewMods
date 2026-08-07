@@ -200,9 +200,11 @@ namespace FoodCravings
             // Update recipe blacklist
             this.recipeBlacklist = this.Config.recipeBlacklist;
 
-            // Get list of display names of all valid recipes (must be known and not on the blacklist)
-            List<string> knownRecipes = Game1.player.cookingRecipes.Keys.Select(GetRecipeDisplayName).ToList();
-            List<string> validRecipes = knownRecipes.Where(r => !recipeBlacklist.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
+            // Get list of display names of all valid recipes (must be known, not on the blacklist and be from vanilla or a mod that is still installed)
+            HashSet<string> loadedRecipeKeys = CraftingRecipe.cookingRecipes.Keys.ToHashSet();
+            List<string> knownRecipeKeys = Game1.player.cookingRecipes.Keys.Where(k => loadedRecipeKeys.Contains(k)).ToList(); // Drop recipes from removed mods
+            List<string> knownRecipeNames = knownRecipeKeys.Select(GetRecipeDisplayName).ToList();
+            List<string> validRecipes = knownRecipeNames.Where(r => !recipeBlacklist.Contains(r, StringComparer.OrdinalIgnoreCase)).ToList();
 
             if (this.Config.skipIfNoKitchen && Game1.player.HouseUpgradeLevel < 1)
             {
@@ -241,7 +243,7 @@ namespace FoodCravings
             // Check if there are any blacklist items that do not match any known recipe
             foreach (string entry in Config.recipeBlacklist)
             {
-                if (!knownRecipes.Contains(entry, StringComparer.OrdinalIgnoreCase))
+                if (!knownRecipeNames.Contains(entry, StringComparer.OrdinalIgnoreCase))
                     Monitor.Log($"Recipe blacklist entry '{entry}' doesn't match any known recipe display name.", LogLevel.Warn);
             }
 
